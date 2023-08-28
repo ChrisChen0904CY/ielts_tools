@@ -232,7 +232,7 @@ class WordTrainer():
     def getDic(self):
         return self.dic
     
-    # Have a dictation
+    # Have a test
     def test(self, batch=10, mode = 0, write_meanings=False):
         dic_length = len(self.dic if mode==0 else self.unknow_dic)
         mark = [False]*dic_length
