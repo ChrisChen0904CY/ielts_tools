@@ -272,7 +272,7 @@ And you can type 'h' or 'help' for command list:
 
 **Presentation:**
 
-**\1. Function Merge**
+**1. Function Merge**
 
 It's clearly shown in the `ielts_tools.py` that there are too many iterance between the dictation section and reading test section. That's why I choose to merge them up through adding a parameter to decide which test we want.
 
@@ -353,14 +353,14 @@ Now, here's the codes of the merged function named **test**:
 
 That's obvious the indicates section and the input section of both the **dictation test** and the **reading test** were almost **coordinately repeated** in the previous codes if you've downloaded it.
 
-**\2. Indicates Optimization**
+**2. Indicates Optimization**
 
 You can only have a single test through the previous version while you can have **any times** and **any styles** of tests here. There is no more need to type a *Python* command to run the file for any single test.
 
 Here's the flow chart of current interaction:
 ![](./imgs/flow_chart.png)
 
-**\3. Require for Words**
+**3. Require for Words**
 
 You can type '2' or any context containing "research" to require the meanings of a specific word as following:
 
@@ -372,7 +372,7 @@ Then the word here will be added to the `read_list.txt` and you can see it when 
 
 ![](./imgs/10.png)
 
-**\4. Hyrid Dictation**
+**4. Hyrid Dictation**
 
 There's no hurdle for you to understand it, so here's just an instance for you:
 
