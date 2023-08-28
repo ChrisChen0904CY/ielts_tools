@@ -10,15 +10,15 @@
 
 # Menu
 ---
-<ol>
-	<li><a href="#1">Brief Introduction</a></li>
-	<li><a href="#1.1">&nbsp;&nbsp;&nbsp;&nbsp;How this work</a></li>
+<ul>
+	<li style="list-style: none"><a href="#1">Brief Introduction</a></li>
+	<li><a href="#1.1">How this work</a></li>
 	<li><a href="#2">Brief Introduction</a></li>
 	<li><a href="#3">Brief Introduction</a></li>
 	<li><a href="#4">Brief Introduction</a></li>
 	<li><a href="#5">Brief Introduction</a></li>
 	<li><a href="#6">Brief Introduction</a></li>
-</ol>
+</ul>
 
 <h1 id="1">Brief Introduction</h1>
 ---
