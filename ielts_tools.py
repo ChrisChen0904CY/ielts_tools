@@ -14,9 +14,9 @@ from playsound import playsound, PlaysoundException
 
 @breif: A tool to help excersise for IELTS Exam by dictation and read-training
 
-@release-date: 8/25/2023
+@release-date: version 1.0 at 8/25/2023
 
-@time: 17.53 EST
+@update-info: version 1.1 at 8/26/2023
 
 '''
 class WordTrainer():
@@ -199,8 +199,12 @@ class WordTrainer():
             html = json.loads(html)
             # get the entire meaning by intercepting it through analysing
             meaning = ""
-            for explains in html['data']['entries']:
-                meaning += explains['explain']+'|'
+            if(len(html['data'])>0):
+                for explains in html['data']['entries']:
+                    meaning += explains['explain']+'|'
+            else:
+                # Can't find the meaning
+                meaning = "Not Found."
             # add to dictionary
             if memo_dic == 0:
                 self.dic[word] = meaning
@@ -208,61 +212,76 @@ class WordTrainer():
                 self.unknow_dic[word] = meaning
             self.all_meanings[word] = meaning
             # add to meanings.txt
-            file = open('meanings.txt', 'a')
-            file.write(word+'|'+meaning+'\n')
-            file.close()
+            if meaning != "Not Found.":
+                file = open('meanings.txt', 'a')
+                file.write(word+'|'+meaning+'\n')
+                file.close()
     
     def showInfo(self, word):
         if word in self.all_meanings.keys():
             print(self.all_meanings[word].replace('|', '\n').strip())
         else:
             self.getInfo(word, 1)
+            if self.all_meanings[word] != "Not Found.":
+                # add to read_list.txt
+                file = open('read_list.txt', 'a')
+                file.write(word+'\n')
+                file.close()
             print(self.all_meanings[word].replace('|', '\n').strip())
         
     def getDic(self):
         return self.dic
     
     # Have a dictation
-    def dic_test(self, batch=10):
-        dic_length = len(self.dic)
+    def test(self, batch=10, mode = 0, write_meanings=False):
+        dic_length = len(self.dic if mode==0 else self.unknow_dic)
         mark = [False]*dic_length
-        test_batch_len = min(dic_length, batch)
-        dictation_list = []
+        test_batch_len = dic_length if batch=='all' else min(dic_length, batch)
+        test_list = []
         # Get all the words
         words = []
-        for key in self.dic.keys():
+        for key in self.dic.keys() if mode==0 else self.unknow_dic.keys():
             words.append(key)
         # Generate a dictation list
-        while(len(dictation_list)<test_batch_len):
+        while(len(test_list)<test_batch_len):
             # Get an index first
             word_id = random.randint(0, dic_length-1)
             while(mark[word_id]):
                 # Hash Random index
                 word_id = 0 if word_id==dic_length-1 else word_id+1
             mark[word_id] = True
-            dictation_list.append(words[word_id])
-        # Start Dictation
+            test_list.append(words[word_id])
+        # Start Test
         i = 1
         wrong_ans = []
         # initialize the mixer
-        for dic_word in dictation_list:
+        for dic_word in test_list:
             print('################################################################')
             print(str(i)+"/"+str(test_batch_len))
-            # Play the sound
-            try:
-                playsound(r'.\\audios\\'+(r'US\\' if self._type==0 else r'UK\\')+dic_word+r'.mp3')
-                # Input answer
-                ans = input('> ')
-            except PlaysoundException:
-                print("\033[31mThis audio can\'t play!\033[0m")
-                ans = dic_word
-            # Check and Feedback
-            if ans != dic_word:
-                wrong_ans.append(dic_word)
-            print('\033[32mCorrect!\033[0m' if ans==dic_word else '\033[31mWrong Again!!!\033[0m')
+            right_word = self.dic[dic_word].replace('|', '\n').strip() if mode==0 else self.unknow_dic[dic_word].replace('|', '\n').strip()
+            # Play the sound while dictation
+            if mode==0:
+                try:
+                    playsound(r'.\\audios\\'+(r'US\\' if self._type==0 else r'UK\\')+dic_word+r'.mp3')
+                    # Input answer
+                    ans = input('> ')
+                except PlaysoundException:
+                    print("\033[31mThis audio can\'t play!\033[0m")
+                    ans = dic_word.replace('+', ' ')
+                print('\033[32mCorrect!\033[0m' if ans == dic_word.replace('+', ' ') else '\033[31mWrong Again!!!\033[0m')
+            # Meaning test
+            print('\033[35m'+dic_word.replace('+', ' ')+": "+'\033[0m')
+            if write_meanings or mode!=0:
+                input_meaning = input("What\'s the meaning of it?\n> ")
+                print('\033[32mCorrect!\033[0m' if input_meaning in right_word else '\033[31mWrong Again!!!\033[0m')  
             print('Explain of it: ')
-            print('\033[35m'+dic_word+": "+'\033[0m')
-            print(self.dic[dic_word].replace('|', '\n').strip())
+            print(right_word)
+            # Check and Feedback
+            judgement = ans != dic_word.replace('+', ' ') if mode==0 else input_meaning not in right_word
+            if write_meanings:
+                judgement = judgement or input_meaning not in right_word
+            if judgement:
+                wrong_ans.append(dic_word)
             # Check Whether go on
             ok = input('Go on?[y for go on] > ')
             while(ok!='y'):
@@ -283,64 +302,7 @@ class WordTrainer():
         for j in range(len(wrong_ans)):
             print("################################################################")
             print(str(j+1)+"/"+str(len(wrong_ans)))
-            print(wrong_ans[j])
-            
-    def unknow_test(self, batch=10):    
-        dic_length = len(self.unknow_dic)
-        mark = [False]*dic_length
-        test_batch_len = min(dic_length, batch)
-        test_list = []
-        # Get all the words
-        words = []
-        for key in self.unknow_dic.keys():
-            words.append(key)
-        # Generate a dictation list
-        while(len(test_list)<test_batch_len):
-            # Get an index first
-            word_id = random.randint(0, dic_length-1)
-            while(mark[word_id]):
-                # Hash
-                word_id = 0 if word_id==dic_length-1 else word_id+1
-            mark[word_id] = True
-            test_list.append(words[word_id])
-        # Start Test
-        i = 1
-        wrong_ans = []
-        # initialize the mixer
-        for test_word in test_list:
-            print('################################################################')
-            print(str(i)+"/"+str(test_batch_len))
-            # Print the word
-            print(test_word.replace("+", " "))
-            # input the meaning
-            ans = input('> ')
-            # Check and Feedback
-            if ans not in self.unknow_dic[test_word]:
-                wrong_ans.append(test_word)
-            print('\033[32mCorrect!\033[0m' if ans in self.unknow_dic[test_word] else '\033[31mWrong Again!!!\033[0m')
-            print('Explain of it: ')
-            print(self.unknow_dic[test_word].replace('|', '\n').strip())
-            # Check Whether go on
-            ok = input('Go on?[y for go on] > ')
-            while(ok!='y'):
-                ok = input('Go on?[y for go on] > ')
-            i+=1
-        # Done!
-        print("################################################################")
-        print("Done!")
-        # Compute the accuracy and review the wrong words
-        print("################################################################")
-        print("Acc: {:.2f}%".format(float(1-float(len(wrong_ans))/float(test_batch_len))*100))
-        # Review the wrong words
-        # No one mistake here!
-        if wrong_ans==[]:
-            print('Perfect!!!')
-        else:
-            print('Now Let\'s review the wrong words here.')
-        for j in range(len(wrong_ans)):
-            print("################################################################")
-            print(str(j+1)+"/"+str(len(wrong_ans)))
-            print(wrong_ans[j])
+            print(wrong_ans[j].replace('+', ' '))
         
     def _getURL(self):
         '''
