@@ -36,14 +36,14 @@ The entire project, or rather, the package, relies on the utilization of the ***
 ---
 To ensure the program can run correctly, it is advisable to structure your files as follows:
 
-├─audios
-│  ├─UK
-│  └─US
-├─dictation_list.txt
-├─read_list.txt
-├─meanings.txt
-├─ielts_tools.py
-├─main.py
+├─audios<br>
+│  ├─UK<br>
+│  └─US<br>
+├─dictation_list.txt<br>
+├─read_list.txt<br>
+├─meanings.txt<br>
+├─ielts_tools.py<br>
+├─main.py<br>
 
 # Revelant Packages
 ---
