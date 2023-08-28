@@ -10,24 +10,33 @@
 
 # Menu
 ---
-<ul>
-	<li style="list-style: none"><a href="#1">Brief Introduction</a></li>
-	<li><a href="#1.1">How this work</a></li>
-	<li><a href="#2">Brief Introduction</a></li>
-	<li><a href="#3">Brief Introduction</a></li>
-	<li><a href="#4">Brief Introduction</a></li>
-	<li><a href="#5">Brief Introduction</a></li>
-	<li><a href="#6">Brief Introduction</a></li>
-</ul>
+<a href="#1">1. Brief Introduction</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#1.1">1.1 What's this for</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#1.2">1.2 How this work</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#1.3">1.3 Basement</a><br><br>
+<a href="#2">2. Related File Structure</a><br><br>
+<a href="#3">3. Revelant Packages</a><br><br>
+<a href="#4">4. How to Use</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1">4.1 Statement of the core Class</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1.1">4.1.1 Initialize</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1.2">4.1.2 Dictation Function</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1.3">4.1.3 Reading-Tese Function</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1.4">4.1.4 Inquire about a Word Quickly</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.1.5">4.1.5 Test Function</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#4.2">4.2 Deal with Phrases</a><br><br>
+<a href="#5">5. Easily Use</a><br><br>
+<a href="#6">6. Update Details</a><br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#6.1">6.1 version 1.1</a><br><br>
+<a href="#7">7. Thanks</a><br><br>
 
 <h1 id="1">Brief Introduction</h1>
----
-## What's this for
----
+
+<h2 id="1.1">What's this for</h2>
+
 This package is designed to aid ***IELTS exam*** preparation, with a specific focus on ***enhancing dictation skills*** and ***expanding vocabulary***.
 
-<h2 id="1.1">How this work</h2>
----
+<h2 id="1.2">How this work</h2>
+
 You can include words that ***are frequently misspelled***, ***lead to confusion while listening***, or ***prove challenging to comprehend*** in the list files. Subsequently, you can run the `main.py` file provided in this context.
 
 Then you have the option to select either a `'dictation'` or a `'reading test'` as illustrated below:
@@ -40,12 +49,12 @@ Here's an instance for the ***reading test***:
 ![](./imgs/3.png)
 ![](./imgs/4.png)
 
-<h2 id="1.2">Basement</h2>
----
+<h2 id="1.3">Basement</h2>
+
 The entire project, or rather, the package, relies on the utilization of the ***youdao API***. Consequently, this package may become non-functional when the youdao API be discontinued.
 
 <h1 id="2">Related File Structure</h1>
----
+
 To ensure the program can run correctly, it is advisable to structure your files as follows:
 
 ├─audios<br>
@@ -58,7 +67,7 @@ To ensure the program can run correctly, it is advisable to structure your files
 ├─main.py<br>
 
 <h1 id="3">Revelant Packages</h1>
----
+
 To ensure this package functions as intended, you should verify whether you have installed the following packages:
 > urlib
 > json
@@ -82,17 +91,17 @@ pip install playsound
 ```
 
 <h1 id="4">How to Use</h1>
----
+
 Here is ***the most significant section*** of this file. Perhaps you navigated directly to this part upon opening the file. While it is easily understandable, you may overlook some intriguing terms along the way.
 
 <h2 id="4.1">Statement of the core Class</h2>
----
+
 As you can observe, the sole component within this package is a class named ***WordTrainer***. Much like its namesake, isn't it?
 
 Alright, let me walk you through the core components step by step:
 
 <h3 id="4.1.1">Initialize</h3>
----
+
 You can never prepare a meal without a pot, can you? Similarly, if you wish to utilize this for exercises, you must initialize it as follows:
 
 ```python
@@ -104,7 +113,9 @@ It specifies that you create an object with an ***English Accent***, which is co
 The only parameter you can provide during initialization is either the number *0* or *1*. *0* corresponds to an ***American Accent***, while *1* corresponds to an ***English Accent***.
 
 <h3 id="4.1.2">Dictation Function</h3>
----
+
+**Caution: It's already been abandon since version 1.1, and it's been replace with test function.**
+
 After initializing an object, you can invoke the dictation function to undergo a personalized dictation, as illustrated below (assuming your object is named *UK_Trainer*):
 
 ```python
@@ -117,7 +128,9 @@ UK_Trainer.dic_test(10)
 ![](./imgs/5.png)
 
 <h3 id="4.1.3">Reading-Test Function</h3>
----
+
+**Caution: It's already been abandon since version 1.1, and it's been replace with test function.**
+
 After initializing an object, you can invoke the dictation function to undergo a personalized read test, as illustrated below (assuming your object is named *UK_Trainer*):
 
 ```python
@@ -125,7 +138,7 @@ After initializing an object, you can invoke the dictation function to undergo a
 UK_Trainer.unknow_test(10)
 ```
 <h3 id="4.1.4">Inquire about a Word Quickly</h3>
----
+
 You can also simply request the definition of a specific word using this method:
 
 ```python
@@ -134,8 +147,38 @@ UK_Trainer.showInfo('good')
 ```
 ***Tips.*** When the word you inquire about is not found in the current file, it will be downloaded to the ***read_list.txt***, and its definitions will be printed.
 
+<h3 id="4.1.5">Test Function</h3>
+
+It provided with three parameters said `batch_size`, `mode` and  `write_meanings`.
+
+First of all, you can input any positive number or the text 'all' for the `batch_size` to speicifies how many words you'd like to take.
+
+Secondly, you can choose `mode` as *0* for *dictation* and *1* for *reading test*.
+
+Ultimately, `write_meanings` is a bool-type parameter which spicifies whether you want a meaning write exercise as an addition through your dictation.
+
+e.g. Have a normal dictation with 10 words per epoch:
+```python
+# good here can be replaced to any word you want to ask
+UK_Trainer.test(10, 0, False)
+# It's also feasible to ignore the last two parameters because of default value like:
+UK_Trainer.test(10)
+```
+
+e.g. Have a dictation with 10 words per epoch and a meaning write in addtion:
+```python
+# good here can be replaced to any word you want to ask
+UK_Trainer.test(10, 0, True)
+```
+
+e.g. Have a reading test with 10 words per epoch:
+```python
+# good here can be replaced to any word you want to ask
+UK_Trainer.test(10, 1) # Here the last parameter dosen't impact on the process
+```
+
 <h2 id="4.2">Deal with Phrases</h2>
----
+
 When you need to request the meaning of a phrase or add a phrase to your list, you ***must*** replace the ***spaces*** between words with a plus symbol +.
 
 Here's an instance for you:
@@ -147,7 +190,7 @@ The phrase `"pin down"` should be written as `"pin+down"`.
 **`However, you should disregard this rule when participating in dictation exercises. For instance, you should simply type 'pin down' when you hear it insteadd of 'pin+down'.`**
 
 <h1 id="5">Easily Use</h1>
----
+
 If you prefer a quick and convenient use of this package, you can just run the code provided below, and you will obtain the same results I have demonstrated above:
 
 ```python
@@ -214,9 +257,9 @@ And you can type 'h' or 'help' for command list:
 ![](./imgs/8.png)
 
 <h1 id="6">Update Details</h1>
----
+
 <h2 id="6.1">version 1.1</h2>
----
+
 **Update Date**:&nbsp;&nbsp;***8/28/2023***
 
 **Summary:**
@@ -336,5 +379,5 @@ There's no hurdle for you to understand it, so here's just an instance for you:
 ![](./imgs/11.png)
 
 <h1 id="7">Thanks</h1>
----
+
 Here, I would like to extend my heartfelt ***gratitude*** to ***Kristine Cheng***, who has been with me throughout the entire process of developing this package and has provided me with immense support and encouragement. By the way, she's not only my ***girlfriend*** but also ***the most amazing girl*** I've ever met.
