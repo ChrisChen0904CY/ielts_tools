@@ -4,7 +4,21 @@ import urllib.parse
 import json
 import random
 from playsound import playsound, PlaysoundException
+import re
+import utils
+import numpy as np
 
+
+# Ignore the divide warning
+np.seterr(divide='ignore',invalid='ignore')
+
+
+# GEt the batch size of training
+def batch_input():
+    print('OK! Now please set the batch size u\'d like to take: ')
+    batch_size = input('> ')
+    batch_size = 'all' if batch_size=='all' else eval(batch_size)
+    return batch_size
 
 '''
 
@@ -17,6 +31,8 @@ from playsound import playsound, PlaysoundException
 @release-date: version 1.0 at 8/25/2023
 
 @update-info: version 1.1 at 8/26/2023
+
+@update-info: version 2.0 at 8/29/2023
 
 '''
 class WordTrainer():
@@ -69,6 +85,10 @@ class WordTrainer():
         self.dic = {}
         # unfamiliar words dictionary
         self.unknow_dic = {}
+        # expression words dictionary
+        self.expression_dic = {}
+        # idioms words dictionary
+        self.idioms_dic = {}
         
         # Read words from local txt files
         file = open('dictation_list.txt', 'r')
@@ -78,6 +98,7 @@ class WordTrainer():
                 break
             self.dic[line] = ""
         file.close()
+        # read words
         file = open('read_list.txt', 'r')
         for line in file.readlines():
             line = line.strip()
@@ -85,6 +106,44 @@ class WordTrainer():
                 break
             self.unknow_dic[line] = ""
         file.close()
+        # read expression
+        express = set({})
+        cor_words = {}
+        file = open('expression.txt', 'r')
+        for line in file.readlines():
+            line = line.strip()
+            if line == "":
+                break
+            pos = line.find("|")
+            s1 = line[:pos]
+            s2 = line[pos+1:]
+            cor_words[s1] = s2
+            express.add(s2)
+        file.close()
+        # initialize expression_dic
+        for key in express:
+            self.expression_dic[key] = []
+        for word in cor_words.keys():
+            self.expression_dic[cor_words[word]].append(word)
+        # idioms
+        express = set({})
+        cor_words = {}
+        file = open('idioms.txt', 'r')
+        for line in file.readlines():
+            line = line.strip()
+            if line == "":
+                break
+            pos = line.find("|")
+            s1 = line[:pos]
+            s2 = line[pos+1:]
+            cor_words[s1] = s2
+            express.add(s2)
+        file.close()
+        # initialize expression_dic
+        for key in express:
+            self.idioms_dic[key] = []
+        for word in cor_words.keys():
+            self.idioms_dic[cor_words[word]].append(word)
         
         # root path of the file
         self._dirRoot = os.path.dirname(os.path.abspath(__file__))
@@ -217,7 +276,7 @@ class WordTrainer():
                 file.write(word+'|'+meaning+'\n')
                 file.close()
     
-    def showInfo(self, word):
+    def showInfo(self, word, add_dic=False):
         if word in self.all_meanings.keys():
             print(self.all_meanings[word].replace('|', '\n').strip())
         else:
@@ -227,22 +286,58 @@ class WordTrainer():
                 file = open('read_list.txt', 'a')
                 file.write(word+'\n')
                 file.close()
+                # add to dictation_list while needed
+                file = open('dictation_list.txt', 'a')
+                file.write(word+'\n')
+                file.close()
             print(self.all_meanings[word].replace('|', '\n').strip())
-        
+    
+    def meaning_assert(self, input_words, meanings):
+        # return true when the meaning can not be found
+        if meanings=="Not Found.":
+            return True
+        # return false while you inpput nothing
+        if input_words.strip()=="":
+            return False
+        means = re.split("[，：；;]", meanings)
+        res = False
+        for mean in means:
+            mean = re.sub('[a-zA-Z\d.\s]','',mean.strip())
+            # 去掉括号内所有内容留下主干意思
+            mean = re.sub(r"\(.*?\)|\{.*?\}|\[.*?\]|【.*?】|（.*?）|<.*?>", "", mean)
+            if mean == "":
+                continue
+            if utils.syn_judge(input_words, mean):
+                res = True
+                break
+        return res
+    
     def getDic(self):
         return self.dic
     
     # Have a test
     def test(self, batch=10, mode = 0, write_meanings=False):
-        dic_length = len(self.dic if mode==0 else self.unknow_dic)
+        # Get the corresponding length of dic
+        if mode==0:
+            dic_length = len(self.dic)
+        elif mode==1:
+            dic_length = len(self.unknow_dic)
+        elif mode==2:
+            dic_length = len(self.expression_dic)
+        else:
+            dic_length = batch
         mark = [False]*dic_length
         test_batch_len = dic_length if batch=='all' else min(dic_length, batch)
         test_list = []
-        # Get all the words
+        # Get all the words/expressions
         words = []
-        for key in self.dic.keys() if mode==0 else self.unknow_dic.keys():
-            words.append(key)
-        # Generate a dictation list
+        if mode == 0 or mode == 1:
+            for key in self.dic.keys() if mode==0 else self.unknow_dic.keys():
+                words.append(key)
+        elif mode == 2 or mode == 3:
+            for key in self.expression_dic.keys() if mode==2 else self.idioms_dic.keys():
+                words.append(key)
+        # Generate a test list
         while(len(test_list)<test_batch_len):
             # Get an index first
             word_id = random.randint(0, dic_length-1)
@@ -254,56 +349,84 @@ class WordTrainer():
         # Start Test
         i = 1
         wrong_ans = []
-        # initialize the mixer
-        for dic_word in test_list:
+        # start test
+        for word in test_list:
             print('################################################################')
             print(str(i)+"/"+str(test_batch_len))
-            right_word = self.dic[dic_word].replace('|', '\n').strip() if mode==0 else self.unknow_dic[dic_word].replace('|', '\n').strip()
             # Play the sound while dictation
-            if mode==0:
-                try:
-                    playsound(r'.\\audios\\'+(r'US\\' if self._type==0 else r'UK\\')+dic_word+r'.mp3')
-                    # Input answer
-                    ans = input('> ')
-                except PlaysoundException:
-                    print("\033[31mThis audio can\'t play!\033[0m")
-                    ans = dic_word.replace('+', ' ')
-                print('\033[32mCorrect!\033[0m' if ans == dic_word.replace('+', ' ') else '\033[31mWrong Again!!!\033[0m')
-            # Meaning test
-            print('\033[35m'+dic_word.replace('+', ' ')+": "+'\033[0m')
-            if write_meanings or mode!=0:
-                input_meaning = input("What\'s the meaning of it?\n> ")
-                print('\033[32mCorrect!\033[0m' if input_meaning in right_word else '\033[31mWrong Again!!!\033[0m')  
-            print('Explain of it: ')
-            print(right_word)
-            # Check and Feedback
-            judgement = ans != dic_word.replace('+', ' ') if mode==0 else input_meaning not in right_word
-            if write_meanings:
-                judgement = judgement or input_meaning not in right_word
-            if judgement:
-                wrong_ans.append(dic_word)
-            # Check Whether go on
-            ok = input('Go on?[y for go on] > ')
-            while(ok!='y'):
+            if mode == 0 or mode == 1:
+                right_word = self.dic[word].replace('|', '\n').strip() if mode==0 else self.unknow_dic[word].replace('|', '\n').strip()
+                if mode==0:
+                    try:
+                        playsound(r'.\\audios\\'+(r'US\\' if self._type==0 else r'UK\\')+word+r'.mp3')
+                        # Input answer
+                        ans = input('> ')
+                    except PlaysoundException:
+                        print("\033[31mThis audio can\'t play!\033[0m")
+                        ans = word.replace('+', ' ')
+                    print('\033[32mCorrect!\033[0m' if ans == word.replace('+', ' ') else '\033[31mWrong Again!!!\033[0m')
+                # Meaning test
+                print('\033[35m'+word.replace('+', ' ')+": "+'\033[0m')
+                if write_meanings or mode!=0:
+                    input_meaning = input("What\'s the meaning of it?\n> ")
+                    print('\033[32mCorrect!\033[0m' if self.meaning_assert(input_meaning, right_word)==True else '\033[31mWrong Again!!!\033[0m')  
+                print('Explain of it: ')
+                print(right_word)
+                # Check and Feedback
+                judgement = ans != word.replace('+', ' ') if mode==0 else self.meaning_assert(input_meaning, right_word)==False
+                if write_meanings:
+                    judgement = judgement or self.meaning_assert(input_meaning, right_word)==False
+                if judgement:
+                    wrong_ans.append(word)
+                # Check Whether go on
                 ok = input('Go on?[y for go on] > ')
-            i+=1
-        # Done!
-        print("################################################################")
-        print("Done!")
-        # Compute the accuracy and review the wrong words
-        print("################################################################")
-        print("Acc: {:.2f}%".format(float(1-float(len(wrong_ans))/float(test_batch_len))*100))
-        # review the wrong words
-        # No one mistake here!
-        if wrong_ans==[]:
-            print('Perfect!!!')
-        else:
-            print('Now Let\'s review the wrong words here.')
-        for j in range(len(wrong_ans)):
+                while(ok!='y'):
+                    ok = input('Go on?[y for go on] > ')
+                i+=1
+            elif mode==2 or mode==3:
+                right_word_list = self.expression_dic[word] if mode==2 else self.idioms_dic[word]
+                print("Please type words to express \'"+word+"\' as more as possible.")
+                print("[Tips. Splitted by \',\']")
+                s = input('> ')
+                input_words = s.split(',')
+                # Judgement
+                for input_word in input_words:
+                    input_word = input_word.strip()
+                    if input_word not in right_word_list:
+                        print('################################################################')
+                        print("The word \033[31m"+input_word+"\033[0m is not recommended here.")
+                # View the recommended words
+                print('################################################################')
+                if input('View the recommended word?\n[Type y to confirm]> ')=='y':
+                    k = 1
+                    for s in right_word_list:
+                        print("\033[32m"+str(k)+". "+s+"\033[0m")
+                        k += 1
+                # epoch+1
+                i += 1
+                
+        if mode==0 or mode==1:
+            # Done!
             print("################################################################")
-            print(str(j+1)+"/"+str(len(wrong_ans)))
-            print(wrong_ans[j].replace('+', ' '))
-        
+            print("Done!")
+            # Compute the accuracy and review the wrong words
+            print("################################################################")
+            print("Acc: {:.2f}%".format(float(1-float(len(wrong_ans))/float(test_batch_len))*100))
+            # review the wrong words
+            # No one mistake here!
+            if wrong_ans==[]:
+                print('Perfect!!!')
+            else:
+                print('Now Let\'s review the wrong words here.')
+            for j in range(len(wrong_ans)):
+                print("################################################################")
+                print(str(j+1)+"/"+str(len(wrong_ans)))
+                print(wrong_ans[j].replace('+', ' '))
+        elif mode==2:
+            # Done!
+            print("################################################################")
+            print("Done!")
+    
     def _getURL(self):
         '''
         Private function to generate the url of the word
@@ -332,3 +455,83 @@ class WordTrainer():
         else:
             # It doesn't exist
             return None
+        
+    def easilyUse(self):
+        # Choose the test mode
+        # 0 -- Dictation mode
+        # 1 -- Reading test mode [i.e. training by typing the correct meaning of the word]
+        # Successfully loaded the model
+        print("################################################################")
+        print('Model loaded Successfully!')
+        print("################################################################")
+        print('Welcome to IELTS Study!')
+        print("################################################################")
+        # Main Process
+        mode = input('How can I help u?\n[Type h or help for more details]\n> ')
+        while mode!='exit':
+            # Start the test here
+            if mode == '0' or 'dic' in mode:
+                batch_size = batch_input()
+                meaning_write = input('Would u like to write down the meanings as an extra exercise?\n[Type y to confirm]> ')
+                self.test(batch_size, 0, meaning_write=='y')
+            elif mode == '1' or 'read' in mode:
+                batch_size = batch_input()
+                self.test(batch_size, 1)
+            elif mode == '2' or 'research' in mode:
+                req_word = input('> ').replace(" ", "+")
+                while req_word != "exit":
+                    # Whether need to be added into dictation list
+                    add_dic = input('Add to dictation list?\n[Type y to confirm]> ')
+                    self.showInfo(req_word, add_dic=='y')
+                    req_word = input('> ').replace(" ", "+")
+            elif mode == '3' or 'write' in mode:
+                batch_size = batch_input()
+                self.test(batch_size, 2)
+            elif mode == '4' or 'speak' in mode:
+                batch_size = batch_input()
+                self.test(batch_size, 3)
+            elif mode == '5' or 'add' in mode:
+                add_list = input('Which list will the word send to?\
+                                 \n0 ----> dictation list\
+                                 \n1 ----> reading list\
+                                 \n2 ----> writing list\
+                                 \n3 ----> idioms list\
+                                 \nothers ----> return to main process\
+                                 \n> ')
+                # Listening|Reading
+                if add_list == '0' or add_list == '1':
+                    list_txt = 'dictation_list' if mode == '0' else 'read_list'
+                    meaning = input('Input the word here.\n> ')
+                    while meaning != 'exit':
+                        file = open(list_txt+'.txt', 'a')
+                        file.write(meaning.strip()+'\n')
+                        file.close()
+                        meaning = input('Input the word here.\n> ')
+                # Writing|Speaking
+                elif add_list == '2' or add_list == '3':
+                    list_txt = 'expression' if mode == '2' else 'idioms'
+                    meaning = input('Input the expression here.\n> ')
+                    while meaning != 'exit':
+                        add_words = input('Input the word(s) you want to add.\n[Splitted by \',\']\n> ').split(',')
+                        file = open(list_txt+'.txt', 'a')
+                        for add_word in add_words:
+                            file.write(add_word.strip()+'|'+meaning.strip()+'\n')
+                        file.close()
+                        meaning = input('Input the expression here.\n> ')
+                
+            elif mode == 'h' or mode == 'help':
+                print("################################################################")
+                print("Here are all the valid commands: ")
+                print("\'0\' or words contained \'dic\' ----> Have a dictation")
+                print("\'1\' or words contained \'read\' ----> Have a reading-test")
+                print("\'2\' or words contained \'research\' ----> Require details for a specific word")
+                print("\'3\' or words contained \'write\' ----> Have a express test")
+                print("\'4\' or words contained \'speak\' ----> Have a idioms test")
+                print("\'5\' or words contained \'add\' ----> Add a word to respective list")
+                print("\'exit\' for quit this program")
+            else:
+                # When type an unexpected mode, log the information
+                print("I'm not clear about your command.")
+            # New Epoch Here
+            print("################################################################")
+            mode = input('How can I help u?\n[Type h or help for more details]\n> ')
