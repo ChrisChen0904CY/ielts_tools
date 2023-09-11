@@ -6,4 +6,4 @@ def syn_judge(s1, s2, threshold=0.707):
 
 
 if __name__=="__main__":
-    print(synonyms.compare("不知到", "食品芳香"))
+    print(synonyms.compare("相当的", "相当得"))

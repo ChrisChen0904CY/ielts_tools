@@ -24,3 +24,28 @@ difference|差别
 public safety|公众安全
 dedication|奉献
 commitment|奉献
+layout|布局
+locate|位于
+relocate|移动
+noteworthy|值得一提的
+no longer in existence|不再存在
+no longer exist|不再存在
+be dedicated to|被用于
+obsolete|淘汰的
+store|存放
+house|存放
+exert|施加
+excessive|过度的
+exacerbate|恶化
+mortality|死亡率
+aforementioned|前文提到的
+unwillingness|不情愿
+presently|目前
+infrastructure|基础设施
+strain|负担
+burden|负担
+outbreak|爆发
+citizens|人；居民
+individuals|人；居民
+people|人；居民
+

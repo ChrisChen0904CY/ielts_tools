@@ -286,10 +286,11 @@ class WordTrainer():
                 file = open('read_list.txt', 'a')
                 file.write(word+'\n')
                 file.close()
-                # add to dictation_list while needed
-                file = open('dictation_list.txt', 'a')
-                file.write(word+'\n')
-                file.close()
+                if add_dic==True:
+                    # add to dictation_list while needed
+                    file = open('dictation_list.txt', 'a')
+                    file.write(word+'\n')
+                    file.close()
             print(self.all_meanings[word].replace('|', '\n').strip())
     
     def meaning_assert(self, input_words, meanings):
@@ -299,14 +300,20 @@ class WordTrainer():
         # return false while you inpput nothing
         if input_words.strip()=="":
             return False
-        means = re.split("[，：；;]", meanings)
+        # remain the main meaning
+        meanings = re.sub(r"\(.*?\)|\{.*?\}|\[.*?\]|【.*?】|（.*?）|<.*?>", "", meanings)
+        means = re.split("[，,:：；;、]", meanings)
         res = False
         for mean in means:
-            mean = re.sub('[a-zA-Z\d.\s]','',mean.strip())
-            # 去掉括号内所有内容留下主干意思
-            mean = re.sub(r"\(.*?\)|\{.*?\}|\[.*?\]|【.*?】|（.*?）|<.*?>", "", mean)
+            # Deal with "..." and "......"
+            mean.replace('......', '什么')
+            mean.replace('...', '什么')
+            mean = re.sub('[a-zA-Z\d\.\s]','',mean.strip())
             if mean == "":
                 continue
+            # can't deal with words final with "的地得"
+            if mean[-1]=="的" or mean[-1]=="地" or mean[-1]=="得":
+                mean = mean[:-1]
             if utils.syn_judge(input_words, mean):
                 res = True
                 break
@@ -324,6 +331,8 @@ class WordTrainer():
             dic_length = len(self.unknow_dic)
         elif mode==2:
             dic_length = len(self.expression_dic)
+        elif mode==3:
+            dic_length = len(self.idioms_dic)
         else:
             dic_length = batch
         mark = [False]*dic_length
@@ -369,7 +378,13 @@ class WordTrainer():
                 print('\033[35m'+word.replace('+', ' ')+": "+'\033[0m')
                 if write_meanings or mode!=0:
                     input_meaning = input("What\'s the meaning of it?\n> ")
+                    # deal with words final with 的地得
+                    if input_meaning!="":
+                        if input_meaning[-1]=="的" or input_meaning[-1]=="地" or input_meaning[-1]=="得":
+                            input_meaning=input_meaning[:-1]
+                    # Meaning Assert
                     print('\033[32mCorrect!\033[0m' if self.meaning_assert(input_meaning, right_word)==True else '\033[31mWrong Again!!!\033[0m')  
+                # Output the meaning
                 print('Explain of it: ')
                 print(right_word)
                 # Check and Feedback
@@ -456,6 +471,18 @@ class WordTrainer():
             # It doesn't exist
             return None
         
+    def copy_info(self, info, target=0):
+        names = ['./dictation_list.txt', './read_list.txt',
+                 './expression.txt', './idioms.txt']
+        file = open(names[target], 'a')
+        infos = info.split('\n')
+        for x in infos:
+            if x != "":
+                word = x[x.find('.')+1:x.rfind(' ')]
+                meaning = x[x.rfind(' ')+1:].strip('。')
+                file.write(word+'|'+meaning+'\n')
+        file.close()
+        
     def easilyUse(self):
         # Choose the test mode
         # 0 -- Dictation mode
@@ -470,13 +497,16 @@ class WordTrainer():
         mode = input('How can I help u?\n[Type h or help for more details]\n> ')
         while mode!='exit':
             # Start the test here
+            # Listening Test
             if mode == '0' or 'dic' in mode:
                 batch_size = batch_input()
                 meaning_write = input('Would u like to write down the meanings as an extra exercise?\n[Type y to confirm]> ')
                 self.test(batch_size, 0, meaning_write=='y')
+            # Reading Test
             elif mode == '1' or 'read' in mode:
                 batch_size = batch_input()
                 self.test(batch_size, 1)
+            # Words Require
             elif mode == '2' or 'research' in mode:
                 req_word = input('> ').replace(" ", "+")
                 while req_word != "exit":
@@ -484,12 +514,15 @@ class WordTrainer():
                     add_dic = input('Add to dictation list?\n[Type y to confirm]> ')
                     self.showInfo(req_word, add_dic=='y')
                     req_word = input('> ').replace(" ", "+")
+            # Writing Test
             elif mode == '3' or 'write' in mode:
                 batch_size = batch_input()
                 self.test(batch_size, 2)
+            # Speaking Test
             elif mode == '4' or 'speak' in mode:
                 batch_size = batch_input()
                 self.test(batch_size, 3)
+            # Word(s) Adding
             elif mode == '5' or 'add' in mode:
                 add_list = input('Which list will the word send to?\
                                  \n0 ----> dictation list\
@@ -500,7 +533,7 @@ class WordTrainer():
                                  \n> ')
                 # Listening|Reading
                 if add_list == '0' or add_list == '1':
-                    list_txt = 'dictation_list' if mode == '0' else 'read_list'
+                    list_txt = 'dictation_list' if add_list == '0' else 'read_list'
                     meaning = input('Input the word here.\n> ')
                     while meaning != 'exit':
                         file = open(list_txt+'.txt', 'a')
@@ -509,16 +542,19 @@ class WordTrainer():
                         meaning = input('Input the word here.\n> ')
                 # Writing|Speaking
                 elif add_list == '2' or add_list == '3':
-                    list_txt = 'expression' if mode == '2' else 'idioms'
+                    list_txt = 'expression' if add_list == '2' else 'idioms'
                     meaning = input('Input the expression here.\n> ')
                     while meaning != 'exit':
+                        if meaning.strip()=='':
+                            meaning = input('Input the expression here.\n> ')
+                            continue
                         add_words = input('Input the word(s) you want to add.\n[Splitted by \',\']\n> ').split(',')
                         file = open(list_txt+'.txt', 'a')
                         for add_word in add_words:
                             file.write(add_word.strip()+'|'+meaning.strip()+'\n')
                         file.close()
                         meaning = input('Input the expression here.\n> ')
-                
+            # Commands List    
             elif mode == 'h' or mode == 'help':
                 print("################################################################")
                 print("Here are all the valid commands: ")
