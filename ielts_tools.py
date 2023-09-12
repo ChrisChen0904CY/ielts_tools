@@ -419,7 +419,8 @@ class WordTrainer():
                         k += 1
                 # epoch+1
                 i += 1
-                
+        
+        # Rivew of Errors
         if mode==0 or mode==1:
             # Done!
             print("################################################################")
@@ -433,10 +434,45 @@ class WordTrainer():
                 print('Perfect!!!')
             else:
                 print('Now Let\'s review the wrong words here.')
-            for j in range(len(wrong_ans)):
-                print("################################################################")
-                print(str(j+1)+"/"+str(len(wrong_ans)))
-                print(wrong_ans[j].replace('+', ' '))
+                # Ask wheter need a immediate training
+                review = input('Re-test now?[Type \'y\' to confirm.]> ')
+                if review=='y':
+                    i = 1
+                    # start re-test
+                    for word in wrong_ans:
+                        print('################################################################')
+                        print(str(i)+"/"+str(len(wrong_ans)))
+                        i += 1
+                        # Play the sound while dictation
+                        right_word = self.dic[word].replace('|', '\n').strip() if mode==0 else self.unknow_dic[word].replace('|', '\n').strip()
+                        if mode==0:
+                            try:
+                                playsound(r'.\\audios\\'+(r'US\\' if self._type==0 else r'UK\\')+word+r'.mp3')
+                                # Input answer
+                                ans = input('> ')
+                            except PlaysoundException:
+                                print("\033[31mThis audio can\'t play!\033[0m")
+                                ans = word.replace('+', ' ')
+                            print('\033[32mCorrect!\033[0m' if ans == word.replace('+', ' ') else '\033[31mWrong Again!!!\033[0m')
+                        # Meaning test
+                        print('\033[35m'+word.replace('+', ' ')+": "+'\033[0m')
+                        if write_meanings or mode!=0:
+                            input_meaning = input("What\'s the meaning of it?\n> ")
+                            # deal with words final with 的地得
+                            if input_meaning!="":
+                                if input_meaning[-1]=="的" or input_meaning[-1]=="地" or input_meaning[-1]=="得":
+                                    input_meaning=input_meaning[:-1]
+                            # Meaning Assert
+                            print('\033[32mCorrect!\033[0m' if self.meaning_assert(input_meaning, right_word)==True else '\033[31mWrong Again!!!\033[0m')  
+                        # Output the meaning
+                        print('Explain of it: ')
+                        print(right_word)
+                else:
+                    for j in range(len(wrong_ans)):
+                        print("################################################################")
+                        print(str(j+1)+"/"+str(len(wrong_ans)))
+                        print(wrong_ans[j].replace('+', ' '))
+                
         elif mode==2:
             # Done!
             print("################################################################")
