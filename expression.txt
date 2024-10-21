@@ -1,7 +1,6 @@
 distinct|不同地
 accompanying|附加的
 respective|各自的
-illustrate|展示
 climb|上升
 increase|上升
 rise|上升
@@ -21,6 +20,66 @@ about|大约
 around|大约
 gap|差别
 difference|差别
+variation|差别
 public safety|公众安全
 dedication|奉献
 commitment|奉献
+layout|布局
+locate|位于
+relocate|移动
+noteworthy|值得一提的
+no longer in existence|不再存在
+no longer exist|不再存在
+be dedicated to|被用于
+obsolete|淘汰的
+store|存放
+house|存放
+exert|施加
+excessive|过度的
+exacerbate|恶化
+mortality|死亡率
+aforementioned|前文提到的
+unwillingness|不情愿
+presently|目前
+infrastructure|基础设施
+strain|负担
+burden|负担
+outbreak|爆发
+citizens|人；居民
+individuals|人；居民
+residents|人；居民
+people|人；居民
+remain consistent|保持不变
+illustrate|表明；描述
+present|表明；描述
+delineate|表明；描述
+depict|表明；描述
+primary|基本的
+basic|基本的
+efficiency|效率[名词]
+phenomenon|现象
+skyscrapers|摩天大楼
+enormous|大量的
+numerous|大量的
+construction site|工地
+transition|转移[名词]
+particularly|尤其
+notably|尤其
+the rate of increase|增长速度
+stagnation|停滞[名词]
+disciplines|科目；学科
+subjects|科目；学科
+align with|赞同
+agree with|赞同
+exclusively|只；唯一的
+solely|只；仅仅
+a portion of|一部分
+a topic of intense debate|激烈争论的一个话题
+advocate|提倡；主张
+initiative|提倡；主张
+As for my personal stance|就我个人而言
+prominently|显著地
+remarkably|显著地
+dramatically|显著地
+slight|细微的
+marginal|细微的
